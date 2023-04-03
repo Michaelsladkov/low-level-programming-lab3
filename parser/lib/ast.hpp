@@ -4,10 +4,15 @@
 #include <unordered_map>
 #include <vector>
 
+#include <nlohmann/json.hpp>
+
+using nlohmann::json;
+
 class INode {
 public:
     virtual ~INode() {}
     virtual void print(int level, std::ostream& out) const = 0;
+    virtual json toJson() const = 0;
 };
 
 class ExpressionNode : public INode {
@@ -33,6 +38,7 @@ public:
         return FieldName;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
     virtual ~VariableValueNode() override {
         delete VariableName;
         delete FieldName;
@@ -49,6 +55,7 @@ public:
         return Value;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
     virtual ~StringLiteralNode() override {
         delete Value;
     }
@@ -64,6 +71,7 @@ public:
         return Value;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
 };
 
 class IntLiteralNode : public ValueNode {
@@ -76,6 +84,7 @@ public:
         return Value;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
 };
 
 class FloatLiteralNode : public ValueNode {
@@ -88,6 +97,7 @@ public:
         return Value;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
 };
 
 enum FilterCheckOperation {
@@ -123,6 +133,7 @@ public:
         delete LHS;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
 };
 
 class LogicalExpressionNode : public INode {
@@ -139,6 +150,7 @@ public:
         return Wrapped;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
 };
 
 class NotOperationNode : public LogicalExpressionNode {
@@ -154,6 +166,7 @@ public:
         delete Operand;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
 };
 
 class BinaryLogicalOperationNode : public LogicalExpressionNode {
@@ -181,12 +194,14 @@ class AndOperationNode : public BinaryLogicalOperationNode {
 public:
     AndOperationNode(LogicalExpressionNode *Left, LogicalExpressionNode *Right) : BinaryLogicalOperationNode(Left, Right) {}
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
 };
 
 class OrOperationNode : public BinaryLogicalOperationNode {
 public:
     OrOperationNode(LogicalExpressionNode *Left, LogicalExpressionNode *Right) : BinaryLogicalOperationNode(Left, Right) {}
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
 };
 
 class PredicateNode : public INode {
@@ -202,6 +217,7 @@ public:
         delete Body;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
 };
 
 class AttributeListNode : public INode {
@@ -222,6 +238,7 @@ public:
         }
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
 };
 
 class VariableMatchNode : public INode {
@@ -240,6 +257,7 @@ public:
         return SchemeName;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
     virtual ~VariableMatchNode() override {
         delete VariableName;
         delete SchemeName;
@@ -260,6 +278,7 @@ public:
         return Pattern;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
 };
 
 class VariableFilterMatchNode : public VariableMatchNode {
@@ -276,6 +295,7 @@ public:
         return Predicate;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
 };
 
 enum RelationDirection {
@@ -295,6 +315,7 @@ public:
         Direction = Dir;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
     const std::string* getVariableName() const {
         return VariableName;
     }
@@ -331,6 +352,7 @@ public:
         Relation = Rel;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
     const VariableMatchNode* getRightMatchNode() const {
         return RightNode;
     }
@@ -351,6 +373,7 @@ class ReturnExpressionNode : public ExpressionNode {
     std::vector<ValueNode*> Values;
 public:
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
     void addElement(ValueNode* Val) {
         Values.push_back(Val);
     }
@@ -381,6 +404,7 @@ public:
         return Src;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
 };
 
 class DeleteExpressionNode : public ExpressionNode {
@@ -390,6 +414,7 @@ public:
         VariableName = Name;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
     const std::string* getVariableName() const {
         return VariableName;
     }
@@ -414,6 +439,7 @@ public:
         Relation = Rel;
     }
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
     const VariableMatchNode* getRightMatchNode() const {
         return RightNode;
     }
@@ -434,6 +460,7 @@ class RequestNode : public INode {
     std::vector<ExpressionNode*> Expressions;
 public:
     virtual void print(int level, std::ostream& out) const override;
+    virtual json toJson() const override;
     RequestNode(ExpressionNode *Expr) {
         Expressions.push_back(Expr);
     }

@@ -1,5 +1,7 @@
 #include "parser_driver.hpp"
 
+#include <nlohmann/json.hpp>
+
 int yyFlexLexer::yywrap() {
     return 1;
 }
@@ -69,6 +71,10 @@ void ParserDriver::printout() const {
     } else {
         this->result->print(0, std::cout);
     }
+}
+
+json ParserDriver::getJson() const {
+    return result->toJson(); 
 }
 
 ParserDriver::~ParserDriver() {

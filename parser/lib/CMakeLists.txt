@@ -24,9 +24,10 @@ add_flex_bison_dependency(lexer parser)
 
 add_library(${PROJECT_NAME} STATIC
             ast_printer.cpp
-            driver.cpp
+            parser_driver.cpp
             ${BISON_parser_OUTPUTS}
             ${FLEX_lexer_OUTPUTS}
 )
+target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PARSER_OUT_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

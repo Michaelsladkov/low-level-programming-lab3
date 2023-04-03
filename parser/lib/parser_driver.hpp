@@ -10,6 +10,8 @@
 #include "generated/parser.tab.hpp"
 namespace yy{
 
+using nlohmann::json;
+
 class ParserDriver {
     FlexLexer *plex_;
     RequestNode *result;
@@ -29,6 +31,8 @@ public:
     void insert(RequestNode *v);
 
     void printout() const;
+
+    json getJson() const;
 
     ~ParserDriver();
 };

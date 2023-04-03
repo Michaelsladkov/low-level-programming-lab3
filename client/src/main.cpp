@@ -1,5 +1,6 @@
 #include <iostream>
 #include <parser_driver.hpp>
+#include <nlohmann/json.hpp>
 
 int main() {
     FlexLexer* lexer = new yyFlexLexer;
@@ -10,6 +11,7 @@ int main() {
     #else
         driver.parse();
     #endif
-    driver.printout();
+    auto j = driver.getJson();
+    std::cout << j.dump() << std::endl;
     delete lexer;
 }
