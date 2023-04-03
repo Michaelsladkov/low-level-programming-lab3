@@ -1,0 +1,10 @@
+/mnt/c/Users/User/ITMO/low-level-programming/low-level-programming-lab3/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/mnt/c/Users/User/ITMO/low-level-programming/low-level-programming-lab3/cmake-build-debug/CMakeFiles/edit_cache.dir
+/mnt/c/Users/User/ITMO/low-level-programming/low-level-programming-lab3/cmake-build-debug/client/CMakeFiles/rebuild_cache.dir
+/mnt/c/Users/User/ITMO/low-level-programming/low-level-programming-lab3/cmake-build-debug/client/CMakeFiles/edit_cache.dir
+/mnt/c/Users/User/ITMO/low-level-programming/low-level-programming-lab3/cmake-build-debug/client/CMakeFiles/msladkov-llp-lab3-client.dir
+/mnt/c/Users/User/ITMO/low-level-programming/low-level-programming-lab3/cmake-build-debug/parser/CMakeFiles/rebuild_cache.dir
+/mnt/c/Users/User/ITMO/low-level-programming/low-level-programming-lab3/cmake-build-debug/parser/CMakeFiles/edit_cache.dir
+/mnt/c/Users/User/ITMO/low-level-programming/low-level-programming-lab3/cmake-build-debug/parser/lib/CMakeFiles/edit_cache.dir
+/mnt/c/Users/User/ITMO/low-level-programming/low-level-programming-lab3/cmake-build-debug/parser/lib/CMakeFiles/rebuild_cache.dir
+/mnt/c/Users/User/ITMO/low-level-programming/low-level-programming-lab3/cmake-build-debug/parser/lib/CMakeFiles/parser.dir

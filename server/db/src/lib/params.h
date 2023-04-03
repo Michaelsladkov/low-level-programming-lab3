@@ -1,0 +1,6 @@
+#pragma once
+
+#define INITIAL_FILE_SIZE 16384
+#define BLOCK_MIN_CAPACITY 64
+#define SCHEME_NODES_PER_BLOCK 100
+#define LINKS_PER_BLOCK 400

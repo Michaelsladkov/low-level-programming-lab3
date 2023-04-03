@@ -1,0 +1,1 @@
+/usr/bin/clang++  -g   CMakeFiles/msladkov-llp-lab3-client.dir/src/main.cpp.o  -o msladkov-llp-lab3-client  ../parser/lib/libparser.a 
