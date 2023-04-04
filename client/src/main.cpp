@@ -1,5 +1,6 @@
 #include <iostream>
 #include <parser_driver.hpp>
+#include <dto.hpp>
 #include <nlohmann/json.hpp>
 
 int main() {
@@ -11,7 +12,9 @@ int main() {
     #else
         driver.parse();
     #endif
-    auto j = driver.getJson();
+    Message* msg = new Request(driver.getResult());
+    auto j = msg->toJson();
     std::cout << j.dump(4) << std::endl;
+    delete msg;
     delete lexer;
 }

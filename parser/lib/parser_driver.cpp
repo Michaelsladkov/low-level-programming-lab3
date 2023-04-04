@@ -82,4 +82,8 @@ ParserDriver::~ParserDriver() {
         delete this->result;
 }
 
+RequestNode* ParserDriver::getResult() {
+    return result;
+}
+
 } // namespace

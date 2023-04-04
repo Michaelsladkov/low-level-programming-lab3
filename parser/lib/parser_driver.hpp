@@ -34,6 +34,8 @@ public:
 
     json getJson() const;
 
+    RequestNode* getResult();
+
     ~ParserDriver();
 };
 
