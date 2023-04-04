@@ -1,3 +1,5 @@
+#pragma once
+
 #include <nlohmann/json.hpp>
 
 #include <ast.hpp>
@@ -28,13 +30,14 @@ public:
     virtual ~Message() {}
 };
 
-class Request : public Message {
+class RequestDTO : public Message {
     RequestNode* RequestTree;
 public:
-    Request(RequestNode* Req);
-    Request(json JSON);
+    RequestDTO(RequestNode* Req);
+    RequestDTO(json JSON);
+    RequestNode* getRequestTree();
     virtual json toJson() const override;
-    virtual ~Request() override;
+    virtual ~RequestDTO() override;
 };
 
 class ValueObj {

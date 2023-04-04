@@ -107,7 +107,7 @@ struct AttributeFilter {
 struct ReadNodeRequest {
     enum SchemeIdType SchemeIdType;
     union SchemeId SchemeId;
-    const struct AttributeFilter *AttributesFilterChain;
+    struct AttributeFilter *AttributesFilterChain;
     bool ById;
     size_t Id;
 };

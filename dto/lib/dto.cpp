@@ -21,22 +21,26 @@ MessageType Message::getType() {
     return Type_;
 }
 
-Request::Request(RequestNode* Req) : Message(REQUEST) {
+RequestDTO::RequestDTO(RequestNode* Req) : Message(REQUEST) {
     RequestTree = new RequestNode(Req->toJson());
 }
 
-Request::Request(json JSON) : Message(JSON) {
+RequestDTO::RequestDTO(json JSON) : Message(JSON) {
     RequestTree = new RequestNode(JSON["RequestTree"]);
 }
 
-json Request::toJson() const {
+json RequestDTO::toJson() const {
     json ret;
     ret["Type"] = TypeToStringDict.at(REQUEST);
     ret["RequestTree"] = RequestTree->toJson();
     return ret;
 }
 
-Request::~Request() {
+RequestNode* RequestDTO::getRequestTree() {
+    return RequestTree;
+}
+
+RequestDTO::~RequestDTO() {
     delete RequestTree;
 }
 
@@ -317,7 +321,7 @@ Message* getMessage(json JSON) {
         }
     }
     if (StringToTypeDict.at(TypeStr) == REQUEST) {
-        return new Request(JSON);
+        return new RequestDTO(JSON);
     }
     return nullptr;
 }

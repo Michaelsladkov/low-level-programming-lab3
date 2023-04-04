@@ -29,7 +29,7 @@ void testReadEmptyScheme() {
     struct SchemeResultSet* Result = readScheme(Controller, &ReadRequest);
     struct ExternalScheme* Scheme;
     fprintf(stderr, "Read request performed\n");
-    assert(!SchemeResultSetIsEmpty(Result));
+    assert(!schemeResultSetIsEmpty(Result));
     assert(!hasNextScheme(Result));
     fprintf(stderr, "Getting external representation of Scheme\n");
     assert(readResultScheme(Result, &Scheme));
@@ -96,7 +96,7 @@ void testReadEmptySchemeWithNodes() {
     struct SchemeResultSet* Result = readScheme(Controller, &ReadRequest);
     struct ExternalScheme* Scheme;
     fprintf(stderr, "Read request performed\n");
-    assert(!SchemeResultSetIsEmpty(Result));
+    assert(!schemeResultSetIsEmpty(Result));
     assert(!hasNextScheme(Result));
     fprintf(stderr, "Getting external representation of Scheme\n");
     assert(readResultScheme(Result, &Scheme));
@@ -155,7 +155,7 @@ void testReadFourAttrScheme() {
     struct SchemeResultSet* Result = readScheme(Controller, &ReadRequest);
     struct ExternalScheme* Scheme;
     fprintf(stderr, "Read request performed\n");
-    assert(!SchemeResultSetIsEmpty(Result));
+    assert(!schemeResultSetIsEmpty(Result));
     assert(!hasNextScheme(Result));
     fprintf(stderr, "Getting external representation of Scheme\n");
     assert(readResultScheme(Result, &Scheme));
@@ -812,7 +812,7 @@ void testReadNodesAndLinksWithReopen() {
         .Name = "G"
     };
     struct SchemeResultSet *GRS = readScheme(Controller, &RGR);
-    assert(!SchemeResultSetIsEmpty(GRS));
+    assert(!schemeResultSetIsEmpty(GRS));
     struct ExternalScheme *EG;
     assert(readResultScheme(GRS, &EG));
     assert(EG->AttributesDescriptionNumber == 2);
@@ -911,7 +911,7 @@ void testReadNodesAndLinksWithReopen() {
 
     Controller = beginWork("test.bin"); 
     GRS = readScheme(Controller, &RGR);
-    assert(!SchemeResultSetIsEmpty(GRS));
+    assert(!schemeResultSetIsEmpty(GRS));
     assert(readResultScheme(GRS, &EG));
     assert(EG->AttributesDescriptionNumber == 2);
     assert(EG->NodesNumber == 3);

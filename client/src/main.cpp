@@ -12,7 +12,7 @@ int main() {
     #else
         driver.parse();
     #endif
-    Message* msg = new Request(driver.getResult());
+    Message* msg = new RequestDTO(driver.getResult());
     auto j = msg->toJson();
     std::cout << j.dump(4) << std::endl;
     delete msg;

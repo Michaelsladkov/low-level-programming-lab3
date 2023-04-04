@@ -242,7 +242,7 @@ void deallocate(const struct FileAllocator *const Allocator,
 
 static void printHeaderInfo(const struct FileAllocator *const Allocator,
                             struct BlockHeader *Header) {
-    fprintf(stderr,
+    printf(
             "Block at %lu, size %lu, data size %lu, occupied %d, next %lu, prev "
             "%lu\n",
             ftell(Allocator->File) - sizeof(struct BlockHeader), Header->FullSize,

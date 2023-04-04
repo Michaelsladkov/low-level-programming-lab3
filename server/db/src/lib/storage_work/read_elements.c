@@ -217,7 +217,7 @@ struct SchemeResultSet *readScheme(const struct StorageController *const Control
     *SchemeAddr = findSchemeAddrByName(Controller, Request->Name);
     Result->SchemeAddrs = SchemeAddr;
     Result->Controller = Controller;
-    Result->Cnt = 1;
+    Result->Cnt = SchemeAddr->HasValue ? 1 : 0;
     Result->Index = 0;
     return Result;
 }
@@ -302,7 +302,7 @@ bool nodeLinkResultSetIsEmpty(struct NodeLinkResultSet *ResultSet) {
 }
 
 bool readResultScheme(struct SchemeResultSet *ResultSet, struct ExternalScheme **Scheme) {
-    if (SchemeResultSetIsEmpty(ResultSet))
+    if (schemeResultSetIsEmpty(ResultSet))
         return false;
     getExternalScheme(ResultSet->Controller, ResultSet->SchemeAddrs[ResultSet->Index], Scheme);
     return true;
@@ -330,7 +330,7 @@ bool moveToPreviousScheme(struct SchemeResultSet *ResultSet) {
 
 bool hasPreviousScheme(struct SchemeResultSet *ResultSet) { return ResultSet->Index > 0; }
 
-bool SchemeResultSetIsEmpty(struct SchemeResultSet *ResultSet) { return ResultSet->Cnt == 0; }
+bool schemeResultSetIsEmpty(struct SchemeResultSet *ResultSet) { return ResultSet->Cnt == 0; }
 
 void deleteSchemeResultSet(struct SchemeResultSet **ResultSet) {
     free((**ResultSet).SchemeAddrs);
@@ -363,4 +363,4 @@ size_t nodeResultSetGetSize(struct NodeResultSet *ResultSet) { return ResultSet-
 
 size_t nodeLinkResultSetGetSize(struct NodeLinkResultSet *ResultSet) { return ResultSet->Cnt; }
 
-size_t SchemeSetGetSize(struct SchemeResultSet *ResultSet) { return ResultSet->Cnt; }
+size_t schemeResultSetGetSize(struct SchemeResultSet *ResultSet) { return ResultSet->Cnt; }

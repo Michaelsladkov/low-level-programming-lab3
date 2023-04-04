@@ -1,6 +1,9 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <ast.hpp>
+
+#include "executor/executor.hpp"
+
 using nlohmann::json;
 
 int main() {
@@ -11,9 +14,9 @@ int main() {
         input = input + line;
     }
     json inputJson = json::parse(input);
-    RequestNode* Request = new RequestNode(inputJson);
-    json outputJson = Request->toJson();
-    std::cout << outputJson.dump(4) << std::endl;
+    RequestDTO* Request = new RequestDTO(inputJson);
+    Executor Ex;
+    Ex.processRequest(Request);
     delete Request;
     return 0;
 }

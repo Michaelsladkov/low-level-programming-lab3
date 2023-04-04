@@ -30,6 +30,6 @@ bool moveToNextScheme(struct SchemeResultSet *ResultSet);
 bool moveToPreviousScheme(struct SchemeResultSet *ResultSet);
 bool hasNextScheme(struct SchemeResultSet *ResultSet);
 bool hasPreviousScheme(struct SchemeResultSet *ResultSet);
-bool SchemeResultSetIsEmpty(struct SchemeResultSet *ResultSet);
-size_t SchemeResultSetGetSize(struct SchemeResultSet *ResultSet);
+bool schemeResultSetIsEmpty(struct SchemeResultSet *ResultSet);
+size_t schemeResultSetGetSize(struct SchemeResultSet *ResultSet);
 void deleteSchemeResultSet(struct SchemeResultSet **ResultSet);
