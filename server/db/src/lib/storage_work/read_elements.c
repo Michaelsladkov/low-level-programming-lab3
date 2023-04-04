@@ -202,7 +202,7 @@ struct NodeLinkResultSet *readNodeLink(const struct StorageController *const Con
             findNodeLinksByIdAndType(Controller, Request->Type, Request->Id, &NodeLinks);
     }
     else {
-        //TODO
+        Result->Cnt = findNodeLinksByName(Controller, Request->NameFilter, &NodeLinks);
     }
     Result->Controller = Controller;
     Result->Index = 0;

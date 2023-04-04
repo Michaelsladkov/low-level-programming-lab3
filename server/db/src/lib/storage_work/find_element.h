@@ -23,5 +23,8 @@ struct OptionalFullAddr findNodeLinkAddrById(const struct StorageController *con
 size_t findNodeLinksByIdAndType(const struct StorageController *Controller,
                                 const enum NodeLinkRequestType Type, const size_t Id,
                                 struct OptionalFullAddr **Result);
+size_t findNodeLinksByName(const struct StorageController *Controller,
+                           const struct StringFilter Filter,
+                           struct OptionalFullAddr **Result);
 
 #endif // MSLADKOV_LLP_LAB1_FIND_ELEMENT_H

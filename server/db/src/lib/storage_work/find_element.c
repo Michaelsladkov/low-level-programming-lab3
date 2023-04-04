@@ -5,6 +5,7 @@
 #include "malloc.h"
 #include "params.h"
 #include "request.h"
+#include "storage_controller.h"
 
 #include <string.h>
 
@@ -79,6 +80,28 @@ static bool matchFloatFilter(const struct FloatFilter *const Filter, float Value
         return false;
     }
     return true;
+}
+
+static bool matchStringFilter(const struct StorageController* const Controller, const struct StringFilter *const Filter, struct MyString Value) {
+    bool result = true;
+    char* Str = malloc(Value.Length + 1);
+    if (Value.Length < SMALL_STRING_LIMIT) {
+        strcpy(Str, Value.Data.InlinedData);
+    } else {
+        fetchData(Controller->Allocator, Value.Data.DataPtr, Value.Length, Str);
+    }
+    Str[Value.Length] = 0;
+    if (Filter->Type == STRING_EQUAL) {
+        if (strcmp(Str, Filter->Data.StringEqual) != 0) result = false;
+    }
+    if (Filter->Type == STRLEN_RANGE) {
+        result = matchIntFilter(&(Filter->Data.StrlenRange), Value.Length);
+    }
+    if (Filter->Type == CONTAINS) {
+        if (!strstr(Str, Filter->Data.StringEqual)) result = false;
+    }
+    free(Str);
+    return result;
 }
 
 static bool matchFilterAndAttributeType(enum FILTER_TYPE FT, enum ATTRIBUTE_TYPE AT) {
@@ -319,6 +342,40 @@ size_t findNodeLinksByIdAndType(const struct StorageController *Controller,
         struct NodeLink Link;
         fetchData(Controller->Allocator, NodeLinkAddr, sizeof(Link), &Link);
         if (!Link.Deleted && checkNodeLinkMatchRequest(&Link, Type, Id)) {
+            (*Result)[Index] = NodeLinkAddr;
+            Index++;
+        }
+        if (isOptionalFullAddrsEq(NodeLinkAddr, Storage.LastLink))
+            break;
+        NodeLinkAddr = Link.Next;
+    }
+    return Cnt;
+}
+
+size_t findNodeLinksByName(const struct StorageController *Controller,
+                           const struct StringFilter Filter,
+                           struct OptionalFullAddr **Result) {
+    struct GraphStorage Storage;
+    fetchData(Controller->Allocator, Controller->StorageAddr, sizeof(Storage), &Storage);
+    size_t Cnt = 0;
+    struct OptionalFullAddr NodeLinkAddr = Storage.Links;
+    while (NodeLinkAddr.HasValue) {
+        struct NodeLink Link;
+        fetchData(Controller->Allocator, NodeLinkAddr, sizeof(Link), &Link);
+        if (!Link.Deleted && matchStringFilter(Controller, &Filter, Link.Name)) {
+            Cnt++;
+        }
+        if (isOptionalFullAddrsEq(NodeLinkAddr, Storage.LastLink))
+            break;
+        NodeLinkAddr = Link.Next;
+    }
+    *Result = malloc(sizeof(struct OptionalFullAddr) * Cnt);
+    NodeLinkAddr = Storage.Links;
+    size_t Index = 0;
+    while (NodeLinkAddr.HasValue) {
+        struct NodeLink Link;
+        fetchData(Controller->Allocator, NodeLinkAddr, sizeof(Link), &Link);
+        if (!Link.Deleted && matchStringFilter(Controller, &Filter, Link.Name)) {
             (*Result)[Index] = NodeLinkAddr;
             Index++;
         }
