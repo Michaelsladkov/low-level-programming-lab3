@@ -16,7 +16,9 @@ public:
 };
 
 class ExpressionNode : public INode {
-
+public:
+    virtual ~ExpressionNode() override {
+    }
 };
 
 class ValueNode : public INode {
@@ -31,6 +33,7 @@ public:
         VariableName = VName;
         FieldName = FName;
     }
+    VariableValueNode(json JSON);
     const std::string* getVariableName() {
         return VariableName;
     }
@@ -51,6 +54,7 @@ public:
     StringLiteralNode(std::string *Val) {
         Value = Val;
     }
+    StringLiteralNode(json JSON);
     const std::string* getValue() const {
         return Value;
     }
@@ -67,6 +71,7 @@ public:
     BoolLiteralNode(bool Val) {
         Value = Val;
     }
+    BoolLiteralNode(json JSON);
     bool getValue() const {
         return Value;
     }
@@ -80,6 +85,7 @@ public:
     IntLiteralNode(int Val) {
         Value = Val;
     }
+    IntLiteralNode(json JSON);
     int getValue() const {
         return Value;
     }
@@ -93,6 +99,7 @@ public:
     FloatLiteralNode(float Val) {
         Value = Val;
     }
+    FloatLiteralNode(json JSON);
     float getValue() const {
         return Value;
     }
@@ -119,6 +126,7 @@ public:
         LHS = Left;
         Operation = Op;
     }
+    FilterNode(json JSON);
     const virtual ValueNode* getRHS() const {
         return RHS;
     }
@@ -143,9 +151,10 @@ class LogicalExpressionNode : public INode {
 class FilterByPassNode : public LogicalExpressionNode {
     FilterNode *Wrapped;
 public:
-    FilterByPassNode(class FilterNode *F){
+    FilterByPassNode(FilterNode *F){
         Wrapped = F;
     }
+    FilterByPassNode(json JSON);
     const virtual FilterNode* getFilter() const {
         return Wrapped;
     }
@@ -159,6 +168,7 @@ public:
     NotOperationNode(LogicalExpressionNode *Op) {
         Operand = Op;
     }
+    NotOperationNode(json JSON);
     const virtual LogicalExpressionNode* getOperand() const {
         return Operand;
     }
@@ -193,6 +203,7 @@ public:
 class AndOperationNode : public BinaryLogicalOperationNode {
 public:
     AndOperationNode(LogicalExpressionNode *Left, LogicalExpressionNode *Right) : BinaryLogicalOperationNode(Left, Right) {}
+    AndOperationNode(json JSON);
     virtual void print(int level, std::ostream& out) const override;
     virtual json toJson() const override;
 };
@@ -200,6 +211,7 @@ public:
 class OrOperationNode : public BinaryLogicalOperationNode {
 public:
     OrOperationNode(LogicalExpressionNode *Left, LogicalExpressionNode *Right) : BinaryLogicalOperationNode(Left, Right) {}
+    OrOperationNode(json JSON);
     virtual void print(int level, std::ostream& out) const override;
     virtual json toJson() const override;
 };
@@ -210,6 +222,7 @@ public:
     PredicateNode(LogicalExpressionNode *Expr) {
         Body = Expr;
     }
+    PredicateNode(json JSON);
     const LogicalExpressionNode* getExpr() const {
         return Body;
     }
@@ -223,6 +236,8 @@ public:
 class AttributeListNode : public INode {
     std::unordered_map<std::string, ValueNode*> AttrList;
 public:
+    AttributeListNode() {};
+    AttributeListNode(json JSON);
     bool addAttribute(std::string* name, ValueNode* Value) {
         if (AttrList.count(*name)) return false;
         AttrList[*name] = Value;
@@ -250,6 +265,7 @@ public:
         VariableName = Var;
         SchemeName = Scheme;
     }
+    VariableMatchNode(json JSON);
     const std::string* getVariableName() const {
         return VariableName;
     }
@@ -271,6 +287,7 @@ public:
         VariableMatchNode(Var, Scheme) {
         Pattern = AttrList;
     }
+    VariablePatternMatchNode(json JSON);
     virtual ~VariablePatternMatchNode() override {
         delete Pattern;
     }
@@ -288,6 +305,7 @@ public:
         VariableMatchNode(Var, Scheme) {
         Predicate = Filters;
     }
+    VariableFilterMatchNode(json JSON);
     virtual ~VariableFilterMatchNode() {
         delete Predicate;
     }
@@ -314,6 +332,7 @@ public:
         RelationName = Rel;
         Direction = Dir;
     }
+    RelationMatchNode(json JSON);
     virtual void print(int level, std::ostream& out) const override;
     virtual json toJson() const override;
     const std::string* getVariableName() const {
@@ -351,6 +370,7 @@ public:
         RightNode = Right;
         Relation = Rel;
     }
+    MatchExpressionNode(json JSON);
     virtual void print(int level, std::ostream& out) const override;
     virtual json toJson() const override;
     const VariableMatchNode* getRightMatchNode() const {
@@ -362,7 +382,7 @@ public:
     const RelationMatchNode* getRelationMatchNode() const {
         return Relation;
     }
-    virtual ~MatchExpressionNode() {
+    virtual ~MatchExpressionNode() override {
         delete LeftNode;
         delete RightNode;
         delete Relation;
@@ -372,6 +392,8 @@ public:
 class ReturnExpressionNode : public ExpressionNode {
     std::vector<ValueNode*> Values;
 public:
+    ReturnExpressionNode() {};
+    ReturnExpressionNode(json JSON);
     virtual void print(int level, std::ostream& out) const override;
     virtual json toJson() const override;
     void addElement(ValueNode* Val) {
@@ -397,6 +419,7 @@ public:
         Dest = Destination;
         Src = Source;
     }
+    SetExpressionNode(json JSON);
     const VariableValueNode* getDestination() const {
         return Dest;
     }
@@ -413,6 +436,7 @@ public:
     DeleteExpressionNode(std::string* Name) {
         VariableName = Name;
     }
+    DeleteExpressionNode(json JSON);
     virtual void print(int level, std::ostream& out) const override;
     virtual json toJson() const override;
     const std::string* getVariableName() const {
@@ -438,6 +462,7 @@ public:
         RightNode = Right;
         Relation = Rel;
     }
+    CreateExpressionNode(json JSON);
     virtual void print(int level, std::ostream& out) const override;
     virtual json toJson() const override;
     const VariableMatchNode* getRightMatchNode() const {
@@ -464,6 +489,7 @@ public:
     RequestNode(ExpressionNode *Expr) {
         Expressions.push_back(Expr);
     }
+    RequestNode(json JSON);
     void addExpr(ExpressionNode* Expr) {
         Expressions.push_back(Expr);
     }
@@ -472,7 +498,7 @@ public:
     }
     virtual ~RequestNode() override {
         for (size_t i = 0; i < Expressions.size(); ++i) {
-            ExpressionNode* e = *(Expressions.end());
+            ExpressionNode* e = Expressions[Expressions.size() - 1];
             Expressions.pop_back();
             delete e;
         }

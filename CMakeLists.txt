@@ -8,6 +8,7 @@ FetchContent_MakeAvailable(json)
 set(CMAKE_C_COMPILER "clang")
 set(CMAKE_CXX_COMPILER "clang++")
 project(msladkov-llp-lab3)
+add_compile_options(-g)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 add_subdirectory(server)

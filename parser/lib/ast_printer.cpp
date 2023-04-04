@@ -348,7 +348,7 @@ json RelationMatchNode::toJson() const {
     json ret;
     ret["kind"] = "RealationMatchNode";
     ret["VariableName"] = *VariableName;
-    ret["Relation"] = (RelationName->empty() ? "ANY" : *RelationName);
+    ret["RelationName"] = (RelationName->empty() ? "ANY" : *RelationName);
     ret["Direction"] = directionToStr(Direction);
     return ret;
 }

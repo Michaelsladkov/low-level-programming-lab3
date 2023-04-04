@@ -12,6 +12,6 @@ int main() {
         driver.parse();
     #endif
     auto j = driver.getJson();
-    std::cout << j.dump() << std::endl;
+    std::cout << j.dump(4) << std::endl;
     delete lexer;
 }
