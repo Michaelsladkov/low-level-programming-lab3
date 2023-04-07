@@ -161,6 +161,7 @@ ReadNodeLinkRequest Executor::generateReadNodeLinkRequest(RelationMatchNode* exp
 
 void Executor::processMatchExpr(MatchExpressionNode* Expr, ExecutionContext* context) {
     std::cerr << "processing match expr" << std::endl;
+    std::cerr << Expr->toJson().dump(2) << std::endl;
     std::cerr << Expr->getRelationMatchNode()->toJson().dump(2) << std::endl;
     VariableMatchNode* LeftMatch = const_cast<VariableMatchNode*>(Expr->getLeftMatchNode());
     if (!context->NodeSymTab.count(*(LeftMatch->getVariableName()))) {
@@ -418,7 +419,6 @@ size_t Executor::processCreateExpr(CreateExpressionNode* Expr, ExecutionContext*
         readResultNode(RightRes, &Node);
         RightNodeId = Node->Id;
     }
-
     auto Relation = (RelationMatchNode*)Expr->getRelationMatchNode();
     size_t RelId;
     std::cout << *(Relation->getVariableName()) << std::endl;
@@ -432,10 +432,12 @@ size_t Executor::processCreateExpr(CreateExpressionNode* Expr, ExecutionContext*
 
 Response* Executor::processReturnExpr(ReturnExpressionNode* Expr, ExecutionContext* context) {
     SuccessResponse *ret = new SuccessResponse();
+    std::cout << "processing return\n";
     for (auto v : Expr->getValues()) {
         if (v->toJson()["kind"] == "VariableValueNode") {
             VariableValueNode *var = (VariableValueNode*) v; 
             if (var->getFieldName()->empty()){
+                std::cout << "reading node sym tab\n";
                 auto nodeObjects = context->NodeSymTab.at(*(var->getVariableName()));
                 std::cout << "returning " << nodeResultSetGetSize(nodeObjects) << "nodes\n";
                 auto schemeName = context->NodeVarToScheme.at(*(var->getVariableName()));
@@ -445,6 +447,7 @@ Response* Executor::processReturnExpr(ReturnExpressionNode* Expr, ExecutionConte
                     readResultNode(nodeObjects, &Node);
                     NodeValueObj* nodeObj = new NodeValueObj(Node->Id, var->getVariableName()->c_str(), schemeInfo->Name);
                     for (size_t i = 0; i < Node->AttributesNumber; ++i)  {
+                        std::cout << "addin attr" << std::endl;
                         auto attr = Node->Attributes[i];
                         auto attrDesc = schemeInfo->AttributesDescription[i];
                         ValueObj *attrVal;
@@ -452,15 +455,19 @@ Response* Executor::processReturnExpr(ReturnExpressionNode* Expr, ExecutionConte
                         {
                         case INT:
                             attrVal = new IntValueObj(attrDesc.Name, attr.Value.IntValue);
+                            std::cout << "attr val\n" << attrVal->toJson().dump(2) << std::endl;
                             break;
                         case FLOAT:
                             attrVal = new FloatValueObj(attrDesc.Name, attr.Value.FloatValue);
+                            std::cout << "attr val\n" << attrVal->toJson().dump(2) << std::endl;
                             break;
                         case BOOL:
                             attrVal = new BoolValueObj(attrDesc.Name, attr.Value.BoolValue);
+                            std::cout << "attr val\n" << attrVal->toJson().dump(2) << std::endl;
                             break;
                         case STRING:
                             attrVal = new StringValueObj(attrDesc.Name, attr.Value.StringAddr);
+                            std::cout << "attr val\n" << attrVal->toJson().dump(2) << std::endl;
                             break;
                         
                         default:
@@ -469,6 +476,7 @@ Response* Executor::processReturnExpr(ReturnExpressionNode* Expr, ExecutionConte
                         nodeObj->addAttribute(attrVal);
                     }
                     ret->addValue(nodeObj);
+                    moveToNextNode(nodeObjects);
                 }
             }
         }

@@ -3,6 +3,8 @@
 #include <string>
 #include <unordered_map>
 
+#include <iostream>
+
 const std::unordered_map<MessageType, std::string> TypeToStringDict = {
     {RESPONSE, "RESPONSE"},
     {REQUEST, "REQUEST"}
@@ -181,9 +183,9 @@ json NodeValueObj::toJson() const {
     ret["Name"] = Name_;
     ret["SchemeName"] = SchemeName_;
     ret["Attributes"] = json::array();
-    // for (const auto& a : Attributes_) {
-        // ret["Attributes"].emplace(a.toJson());
-    // }
+    for (const auto& a : Attributes_) {
+        ret["Attributes"].emplace_back(a->toJson());
+    }
     return ret;
 }
 
@@ -284,6 +286,7 @@ SuccessResponse::SuccessResponse(json JSON) : Response(JSON) {
 
 void SuccessResponse::addValue(ValueObj* Val) {
     Values.push_back(Val);
+    std::cout << "Values size " << Values.size() << std::endl;
 }
 
 const std::vector<ValueObj*>& SuccessResponse::getValues() const {
@@ -295,9 +298,9 @@ json SuccessResponse::toJson() const {
     ret["Status"] = StatusToStringDict.at(Status_);
     ret["Type"] = TypeToStringDict.at(Type_);
     ret["Values"] = json::array();
-    // for (const auto& v : Values) {
-        // ret["Values"].emplace(v.toJson());
-    // }
+    for (const auto& v : Values) {
+        ret["Values"].emplace_back(v->toJson());
+    }
     return ret;
 }
 
