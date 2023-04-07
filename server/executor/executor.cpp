@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <unordered_map>
 
 void Executor::getSchemeInfo(const char* SchemeName, ExecutionContext* context) {
     std::cerr << "obtaining scheme info\n";
@@ -146,8 +147,21 @@ ReadNodeRequest* Executor::generateReadNodeRequest(VariableMatchNode* expr, Exec
     return nullptr;
 }
 
+ReadNodeLinkRequest Executor::generateReadNodeLinkRequest(RelationMatchNode* expr) {
+    ReadNodeLinkRequest ret;
+    ret.Type = BY_STRING_FILTER;
+    StringFilter NameFilter;
+    NameFilter.Type = STRING_EQUAL;
+    std::string RelName = expr->getRelationName()->c_str(); 
+    NameFilter.Data.StringEqual = new char[RelName.size()];
+    std::strcpy(NameFilter.Data.StringEqual, RelName.c_str());
+    ret.NameFilter = NameFilter;
+    return ret;
+}
+
 void Executor::processMatchExpr(MatchExpressionNode* Expr, ExecutionContext* context) {
-    std::cerr << "processing match expr\n";
+    std::cerr << "processing match expr" << std::endl;
+    std::cerr << Expr->getRelationMatchNode()->toJson().dump(2) << std::endl;
     VariableMatchNode* LeftMatch = const_cast<VariableMatchNode*>(Expr->getLeftMatchNode());
     if (!context->NodeSymTab.count(*(LeftMatch->getVariableName()))) {
         std::cerr << "we are in if\n";
@@ -164,9 +178,99 @@ void Executor::processMatchExpr(MatchExpressionNode* Expr, ExecutionContext* con
         std::cout << nodeResultSetGetSize(context->NodeSymTab[*(LeftMatch->getVariableName())]) << std::endl;
         delete[] req->AttributesFilterChain;
         delete req;
+        context->NodeVarToScheme[*(LeftMatch->getVariableName())] = *(LeftMatch->getSchemeName());
     }
-    VariableMatchNode* RightMatch = const_cast<VariableMatchNode*>(Expr->getLeftMatchNode());
+    VariableMatchNode* RightMatch = const_cast<VariableMatchNode*>(Expr->getRightMatchNode());
     RelationMatchNode* RelationMatch = const_cast<RelationMatchNode*>(Expr->getRelationMatchNode());
+    if (RelationMatch == nullptr) return;
+    if (!context->NodeLinkSymTab.count(*(RelationMatch->getVariableName()))) {
+        ReadNodeLinkRequest RNLR = generateReadNodeLinkRequest(RelationMatch);
+        NodeLinkResultSet* res = readNodeLink(DBController, &RNLR);
+        delete[] RNLR.NameFilter.Data.StringEqual;
+        if (nodeLinkResultSetGetSize(res) > 0) {
+            std::cout << "putting " << *(RelationMatch->getVariableName()) << " into context" << std::endl;
+            context->NodeLinkSymTab[*(RelationMatch->getVariableName())] = res;
+        }
+        std::cout << "read " << nodeLinkResultSetGetSize(res) << " links\n";
+    }
+    if (!context->NodeSymTab.count(*(RightMatch->getVariableName()))) {
+        ReadNodeRequest* req = generateReadNodeRequest(RightMatch, context);
+        if (req == nullptr) {
+            return;
+        }
+        NodeResultSet* res = readNode(DBController, req);
+        if (nodeResultSetGetSize(res)) {
+            context->NodeSymTab[*(RightMatch->getVariableName())] = res;
+        }
+        std::cout << nodeResultSetGetSize(context->NodeSymTab[*(RightMatch->getVariableName())]) << std::endl;
+        delete[] req->AttributesFilterChain;
+        delete req;
+        context->NodeVarToScheme[*(RightMatch->getVariableName())] = *(RightMatch->getSchemeName());
+    }
+    NodeResultSet* LeftNodes = context->NodeSymTab[*(LeftMatch->getVariableName())];
+    NodeResultSet* RightNodes = context->NodeSymTab[*(RightMatch->getVariableName())];
+    NodeLinkResultSet* Links = context->NodeLinkSymTab[*(RelationMatch->getVariableName())];
+    std::unordered_map<size_t, OptionalFullAddr> LeftNodesBefore;
+    while(hasNextNode(LeftNodes)) {
+        ExternalNode* Node;
+        readResultNode(LeftNodes, &Node);
+        LeftNodesBefore[Node->Id] = LeftNodes->NodeAddrs[LeftNodes->Index];
+        deleteExternalNode(&Node);
+        moveToNextNode(LeftNodes);
+    }
+    std::unordered_map<size_t, OptionalFullAddr> RightNodesBefore;
+    while(hasNextNode(RightNodes)) {
+        ExternalNode* Node;
+        readResultNode(RightNodes, &Node);
+        RightNodesBefore[Node->Id] = RightNodes->NodeAddrs[RightNodes->Index];
+        deleteExternalNode(&Node);
+        moveToNextNode(RightNodes);
+    }
+    std::unordered_map<size_t, std::pair<size_t, OptionalFullAddr>> LinksBefore;
+    while(hasNextNodeLink(Links)) {
+        ExternalNodeLink* Link;
+        readResultNodeLink(Links, &Link);
+        LinksBefore[Link->LeftNodeId] = {Link->RightNodeId, Links->LinkAddrs[Links->Index]};
+        deleteExternalNodeLink(&Link);
+        moveToNextNodeLink(Links);
+    }
+    std::unordered_map<size_t, OptionalFullAddr> LeftNodesAfter;
+    std::unordered_map<size_t, OptionalFullAddr> RightNodesAfter;
+    std::unordered_map<size_t, std::pair<size_t, OptionalFullAddr>> LinksAfter;
+    for(auto &[left, pair] : LinksBefore) {
+        if (LeftNodesBefore.count(left) && RightNodesBefore.count(pair.first)) {
+            LeftNodesAfter[left] = LeftNodesBefore[left];
+            RightNodesAfter[pair.first] = RightNodesBefore[pair.first];
+            LinksAfter[left] = pair;
+        }
+    }
+    OptionalFullAddr* LinksAfterAddrs = new OptionalFullAddr[LinksAfter.size()];
+    size_t LinksIndex = 0;
+    OptionalFullAddr* LeftAfterAddrs = new OptionalFullAddr[LeftNodesAfter.size()];
+    size_t LeftIndex = 0;
+    OptionalFullAddr* RightAfterAddrs = new OptionalFullAddr[RightNodesAfter.size()];
+    size_t RightIndex = 0;
+    for(auto &[left, pair] : LinksAfter) {
+        LinksAfterAddrs[LinksIndex] = pair.second;
+        ++LinksIndex;
+    }
+    for (auto &[id, addr] : LeftNodesAfter) {
+        LeftAfterAddrs[LeftIndex] = addr;
+        ++LeftIndex;
+    }
+    for (auto &[id, addr] : RightNodesAfter) {
+        RightAfterAddrs[RightIndex] = addr;
+        ++RightIndex;
+    }
+    LeftNodes->Cnt = LeftIndex;
+    LeftNodes->NodeAddrs = LeftAfterAddrs;
+    LeftNodes->Index = 0;
+    RightNodes->Cnt = RightIndex;
+    RightNodes->NodeAddrs = RightAfterAddrs;
+    RightNodes->Index = 0;
+    Links->Cnt = LinksIndex;
+    Links->LinkAddrs = LinksAfterAddrs;
+    Links->Index = 0;
 }
 
 ATTRIBUTE_TYPE getTypeFromValueNode(ValueNode* Value) {
@@ -217,6 +321,7 @@ size_t Executor::createNewNode(VariablePatternMatchNode* MatchWithNewNode, Execu
     auto Attributes = MatchWithNewNode->getPattern()->getAttributeList();
     size_t AttrNum = Attributes.size();
     std::string SchemeName(MatchWithNewNode->getSchemeName()->data());
+    context->NodeVarToScheme[*(MatchWithNewNode->getVariableName())] = SchemeName; 
     CreateNodeRequest CNR;
     CNR.SchemeIdType = Scheme_NAME;
     CNR.SchemeId.SchemeName = const_cast<char*>(SchemeName.data());
@@ -295,7 +400,6 @@ size_t Executor::processCreateExpr(CreateExpressionNode* Expr, ExecutionContext*
         ExternalNode* Node;
         readResultNode(LeftRes, &Node);
         LeftNodeId = Node->Id;
-        deleteExternalNode(&Node);
     }
 
     auto RightNode = Expr->getRightMatchNode();
@@ -313,11 +417,12 @@ size_t Executor::processCreateExpr(CreateExpressionNode* Expr, ExecutionContext*
         ExternalNode* Node;
         readResultNode(RightRes, &Node);
         RightNodeId = Node->Id;
-        deleteExternalNode(&Node);
     }
 
     auto Relation = (RelationMatchNode*)Expr->getRelationMatchNode();
     size_t RelId;
+    std::cout << *(Relation->getVariableName()) << std::endl;
+    std::cout << "From create. Number of such relations: " << context->NodeLinkSymTab.count(*(Relation->getVariableName())) << std::endl;
     if (!context->NodeLinkSymTab.count(*(Relation->getVariableName()))) {
         RelId = createNewRelation(Relation, context, LeftNodeId, RightNodeId);
         ObjectsCreated += RelId != 0 ? 1 : 0;
@@ -325,12 +430,60 @@ size_t Executor::processCreateExpr(CreateExpressionNode* Expr, ExecutionContext*
     return ObjectsCreated;
 }
 
+Response* Executor::processReturnExpr(ReturnExpressionNode* Expr, ExecutionContext* context) {
+    SuccessResponse *ret = new SuccessResponse();
+    for (auto v : Expr->getValues()) {
+        if (v->toJson()["kind"] == "VariableValueNode") {
+            VariableValueNode *var = (VariableValueNode*) v; 
+            if (var->getFieldName()->empty()){
+                auto nodeObjects = context->NodeSymTab.at(*(var->getVariableName()));
+                std::cout << "returning " << nodeResultSetGetSize(nodeObjects) << "nodes\n";
+                auto schemeName = context->NodeVarToScheme.at(*(var->getVariableName()));
+                auto schemeInfo = context->SchemeSymTab.at(schemeName);
+                while (hasNextNode(nodeObjects)) {
+                    struct ExternalNode* Node;
+                    readResultNode(nodeObjects, &Node);
+                    NodeValueObj* nodeObj = new NodeValueObj(Node->Id, var->getVariableName()->c_str(), schemeInfo->Name);
+                    for (size_t i = 0; i < Node->AttributesNumber; ++i)  {
+                        auto attr = Node->Attributes[i];
+                        auto attrDesc = schemeInfo->AttributesDescription[i];
+                        ValueObj *attrVal;
+                        switch (attr.Type)
+                        {
+                        case INT:
+                            attrVal = new IntValueObj(attrDesc.Name, attr.Value.IntValue);
+                            break;
+                        case FLOAT:
+                            attrVal = new FloatValueObj(attrDesc.Name, attr.Value.FloatValue);
+                            break;
+                        case BOOL:
+                            attrVal = new BoolValueObj(attrDesc.Name, attr.Value.BoolValue);
+                            break;
+                        case STRING:
+                            attrVal = new StringValueObj(attrDesc.Name, attr.Value.StringAddr);
+                            break;
+                        
+                        default:
+                            break;
+                        }
+                        nodeObj->addAttribute(attrVal);
+                    }
+                    ret->addValue(nodeObj);
+                }
+            }
+        }
+    }
+    return ret;
+}
+
 Response* Executor::processRequest(RequestDTO* Req) {
     auto Expressions = Req->getRequestTree()->getExpressions();
     ExecutionContext context;
+    Response *resp;
     for (auto Expr : Expressions) {
         CreateExpressionNode *AsCreate;
         MatchExpressionNode *AsMatch;
+        ReturnExpressionNode *AsReturn;
         if (Expr->toJson()["kind"] == "CreateExpressionNode") {
             std::cout << "processing create\n";
             AsCreate = (CreateExpressionNode*)Expr;
@@ -340,6 +493,10 @@ Response* Executor::processRequest(RequestDTO* Req) {
         if (Expr->toJson()["kind"] == "MatchExpressionNode") {
             AsMatch = (MatchExpressionNode*)Expr;
             processMatchExpr(AsMatch, &context);
+        }
+        if (Expr->toJson()["kind"] == "ReturnExpressionNode") {
+            AsReturn = (ReturnExpressionNode*)Expr;
+            return processReturnExpr(AsReturn, &context);
         }
     }
     return nullptr;

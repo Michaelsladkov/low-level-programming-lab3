@@ -8,28 +8,6 @@
 #include "logical_structures.h"
 #include "request_result.h"
 
-struct NodeResultSet {
-    const struct StorageController *Controller;
-    struct OptionalFullAddr SchemeAddr;
-    size_t Cnt;
-    size_t Index;
-    struct OptionalFullAddr *NodeAddrs;
-};
-
-struct NodeLinkResultSet {
-    const struct StorageController *Controller;
-    size_t Cnt;
-    size_t Index;
-    struct OptionalFullAddr *LinkAddrs;
-};
-
-struct SchemeResultSet {
-    const struct StorageController *Controller;
-    size_t Cnt;
-    size_t Index;
-    struct OptionalFullAddr *SchemeAddrs;
-};
-
 static void readMyString(const struct StorageController *const Constroller,
                          const struct MyString String,
                          char* Result) {

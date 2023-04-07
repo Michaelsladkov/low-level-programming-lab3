@@ -97,7 +97,7 @@ static bool matchStringFilter(const struct StorageController* const Controller, 
     if (Filter->Type == STRLEN_RANGE) {
         result = matchIntFilter(&(Filter->Data.StrlenRange), Value.Length);
     }
-    if (Filter->Type == CONTAINS) {
+    if (Filter->Type == STRING_CONTAINS) {
         if (!strstr(Str, Filter->Data.StringEqual)) result = false;
     }
     free(Str);

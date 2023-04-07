@@ -16,7 +16,8 @@ int main() {
     json inputJson = json::parse(input);
     RequestDTO* Request = new RequestDTO(inputJson);
     Executor Ex;
-    Ex.processRequest(Request);
+    auto res = Ex.processRequest(Request);
+    std::cout << res->toJson().dump(4) << std::endl;
     delete Request;
     return 0;
 }

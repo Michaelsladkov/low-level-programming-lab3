@@ -67,7 +67,7 @@ struct IntFilter {
     int32_t Max;
 };
 
-enum StringFilterType { STRLEN_RANGE, STRING_EQUAL, CONTAINS };
+enum StringFilterType { STRLEN_RANGE, STRING_EQUAL, STRING_CONTAINS };
 
 struct StringFilter {
     enum StringFilterType Type;

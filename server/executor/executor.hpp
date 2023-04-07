@@ -12,7 +12,9 @@ class Executor {
     size_t createNewNode(VariablePatternMatchNode* MatchWithNewNode, ExecutionContext* context);
     size_t createNewRelation(RelationMatchNode* Rel, ExecutionContext* context, size_t left, size_t right);
     size_t processCreateExpr(CreateExpressionNode* Expr, ExecutionContext* context);
+    Response* processReturnExpr(ReturnExpressionNode* Expr, ExecutionContext* context);
     ReadNodeRequest* generateReadNodeRequest(VariableMatchNode* expr, ExecutionContext* context);
+    ReadNodeLinkRequest generateReadNodeLinkRequest(RelationMatchNode* expr);
 public:
     Executor();
     Response* processRequest(RequestDTO* Req);

@@ -13,4 +13,5 @@ struct ExecutionContext {
     std::unordered_map<std::string, struct NodeResultSet*> NodeSymTab;
     std::unordered_map<std::string, struct NodeLinkResultSet*> NodeLinkSymTab;
     std::unordered_map<std::string, struct ExternalScheme*> SchemeSymTab;
+    std::unordered_map<std::string, std::string> NodeVarToScheme;
 };

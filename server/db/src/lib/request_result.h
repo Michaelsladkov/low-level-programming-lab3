@@ -2,9 +2,27 @@
 
 #include "external_representations.h"
 
-struct NodeResultSet;
-struct NodeLinkResultSet;
-struct SchemeResultSet;
+struct NodeResultSet {
+    const struct StorageController *Controller;
+    struct OptionalFullAddr SchemeAddr;
+    size_t Cnt;
+    size_t Index;
+    struct OptionalFullAddr *NodeAddrs;
+};
+
+struct NodeLinkResultSet {
+    const struct StorageController *Controller;
+    size_t Cnt;
+    size_t Index;
+    struct OptionalFullAddr *LinkAddrs;
+};
+
+struct SchemeResultSet {
+    const struct StorageController *Controller;
+    size_t Cnt;
+    size_t Index;
+    struct OptionalFullAddr *SchemeAddrs;
+};
 
 bool readResultNode(struct NodeResultSet *ResultSet, struct ExternalNode **Node);
 bool moveToNextNode(struct NodeResultSet *ResultSet);
